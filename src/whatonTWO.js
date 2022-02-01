@@ -1,64 +1,26 @@
-const Screen = require('./screen')
-const Film = require('./film')
 const Showing = require('./showing')
-const INVALID_RATING = 'Invalid rating'
 const INVALID_DURATION = 'Invalid duration'
 const INVALID_START_TIME = 'Invalid start time'
-const FILM_ALREADY_EXISTS = 'Film already exists'
 const INVALID_END_TIME = 'Invalid end time'
+const INVALID_FILM = 'Invalid film'
+const INVALID_SCREEN = 'Invalid screen'
+const AFTER_MIDNIGHT = 'Invalid start time - film ends after midnight'
+const TIME_UNAVAILABLE = 'Time unavailable'
+const CLEANING_TIME = 20
 
-class Cinema {
+class WhatsOnTWO {
 
-    constructor(screens) {
-        this.films = []
+    constructor(films, screens) {
+        this.films = films
         this.screens = screens
-    }
-
-    checkFilm(movieName) {
-      for (let i = 0; i < this.films.length; i++) {
-        let film = this.films[i]
-        if (film.isFilmName(movieName)) {
-            return true
-        }
-    }
-    return false
-    }
-
-    //Add a new film
-    addFilm(movieName, rating, duration) {
-
-        //Check the film doesn't already exist
-            if (this.checkFilm(movieName)) {
-                return FILM_ALREADY_EXISTS
-            }
-
-        //Check the rating is valid
-        if (this.isNotRating(rating)) {
-            return INVALID_RATING
-        }
-
-        //Check duration
-        const result = this.checkValidTime(duration)
-        if (result == null) {
-            return INVALID_DURATION
-        }
-
-        const hours = parseInt(result[1])
-        const mins = parseInt(result[2])
-        if (hours <= 0 || mins > 60) {
-            return INVALID_DURATION
-        }
-
-        this.films.push(new Film(movieName, rating, duration))
-    }
-
-    isNotRating(rating) {
-        const array = ["U", "PG", "12", "15", "18"]
-        return !array.includes(rating)
     }
 
     checkValidTime(time) {
         return /^(\d?\d):(\d\d)$/.exec(time)
+    }
+
+    findEndTime() {
+        return 1
     }
 
     //Add a showing for a specific film to a screen at the provided start time
@@ -85,7 +47,7 @@ class Cinema {
         }
 
         if (film === null) {
-            return 'Invalid film'
+            return INVALID_FILM
         }
 
 
@@ -105,14 +67,14 @@ class Cinema {
 
         //It takes 20 minutes to clean the screen so add on 20 minutes to the duration 
         //when working out the end time
-        let intendedEndTimeMinutes = intendedStartTimeMinutes + durationMins + 20
+        let intendedEndTimeMinutes = intendedStartTimeMinutes + durationMins + CLEANING_TIME
         if (intendedEndTimeMinutes >= 60) {
             intendedEndTimeHours += Math.floor(intendedEndTimeMinutes / 60)
             intendedEndTimeMinutes = intendedEndTimeMinutes % 60
         }
 
         if (intendedEndTimeHours >= 24) {
-            return 'Invalid start time - film ends after midnight'
+            return AFTER_MIDNIGHT
         }
 
         //Find the screen by name
@@ -124,7 +86,7 @@ class Cinema {
         }
 
         if (screen === null) {
-            return 'Invalid screen'
+            return INVALID_SCREEN
         }
 
         //Go through all existing showings for this film and make
@@ -190,7 +152,7 @@ class Cinema {
         }
 
         if (error) {
-            return 'Time unavailable'
+            return TIME_UNAVAILABLE
         }
 
         screen.showings.push(new Showing(film, startTime, intendedEndTimeHours, intendedEndTimeMinutes))
@@ -213,4 +175,4 @@ class Cinema {
     }
 }
 
-module.exports = Cinema
+module.exports = WhatsOnTWO

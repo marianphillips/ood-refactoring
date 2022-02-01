@@ -1,31 +1,18 @@
 const Cinema = require("../src/cinema")
 const Film = require("../src/film")
-const Screen = require("../src/screen")
+const FilmList = require("../src/filmlist")
+const ScreenList = require("../src/screenlist")
+
+let screens = new ScreenList()
+screens.addScreen("Screen #1", 20)
+screens.addScreen("Screen #2", 20)
+
 
 describe("Cinema", () => {
     let cinema
 
     beforeEach(() => {
-        cinema = new Cinema()
-    })
-
-    it("creates new screens", () => {
-        cinema.addScreen("Screen 1", 20)
-        cinema.addScreen("Screen 2", 25)
-        const screen1 = new Screen("Screen 1", 20)
-        const screen2 = new Screen("Screen 2", 25)
-        const expected = [screen1, screen2]
-
-        expect(cinema.screens).toEqual(expected)
-    })
-
-    it("returns error trying to create duplicate screen", () => {
-        cinema.addScreen("Screen 1", 20)
-        const result = cinema.addScreen("Screen 1", 25)
-
-        const expected = "Screen already exists"
-
-        expect(result).toEqual(expected)
+        cinema = new Cinema(screens.list)
     })
 
     it("adds new films", () => {
@@ -75,7 +62,6 @@ describe("Cinema", () => {
 
     it("returns error trying to schedule showing when film does not exist", () => {
         cinema.addFilm("Film1", "12", "1:20")
-        cinema.addScreen("Screen #1", 20)
         const expected = "Invalid film"
         const result = cinema.addShowing("Film doesnt exist!", "Screen #1", "10:00")
         expect(result).toBe(expected)
@@ -83,7 +69,6 @@ describe("Cinema", () => {
 
     it("returns error trying to schedule showing when screen does not exist", () => {
         cinema.addFilm("Film1", "12", "1:20")
-        cinema.addScreen("Screen #1", 20)
         const expected = "Invalid screen"
         const result = cinema.addShowing("Film1", "Screen Doesnt exist", "10:00")
         expect(result).toBe(expected)
@@ -91,7 +76,6 @@ describe("Cinema", () => {
 
     it("schedules single film", () => {
         cinema.addFilm("Film1", "12", "1:20")
-        cinema.addScreen("Screen #1", 20)
         const expected = {
             "Film1": [
                 "Screen #1 Film1 (12) 10:00 - 11:40"
@@ -106,7 +90,6 @@ describe("Cinema", () => {
 
     it("schedules same film on same screen", () => {
         cinema.addFilm("Film1", "12", "1:20")
-        cinema.addScreen("Screen #1", 20)
 
         const expected = {
             "Film1": [
@@ -124,8 +107,6 @@ describe("Cinema", () => {
 
     it("schedules same film on multiple screens", () => {
         cinema.addFilm("Film1", "12", "1:20")
-        cinema.addScreen("Screen #1", 20)
-        cinema.addScreen("Screen #2", 20)
 
         const expected = {
             "Film1": [
@@ -144,8 +125,6 @@ describe("Cinema", () => {
     it("schedules multiple films on multiple screens", () => {
         cinema.addFilm("Film1", "12", "1:20")
         cinema.addFilm("Film2", "15", "2:00")
-        cinema.addScreen("Screen #1", 20)
-        cinema.addScreen("Screen #2", 20)
 
         const expected = {
             "Film1": [
@@ -171,7 +150,6 @@ describe("Cinema", () => {
 
     it("returns error when film screening overlaps start", () => {
         cinema.addFilm("Film1", "12", "1:00")
-        cinema.addScreen("Screen #1", 20)
 
         cinema.addShowing("Film1", "Screen #1", "10:00")
         const result = cinema.addShowing("Film1", "Screen #1", "11:00")
@@ -181,7 +159,6 @@ describe("Cinema", () => {
 
     it("returns error when film screening overlaps end", () => {
         cinema.addFilm("Film1", "12", "1:00")
-        cinema.addScreen("Screen #1", 20)
 
         cinema.addShowing("Film1", "Screen #1", "10:00")
         const result = cinema.addShowing("Film1", "Screen #1", "09:10")
@@ -192,7 +169,6 @@ describe("Cinema", () => {
     it("returns error when film screening overlaps all", () => {
         cinema.addFilm("Film1", "12", "1:00")
         cinema.addFilm("Film2", "12", "4:00")
-        cinema.addScreen("Screen #1", 20)
 
         cinema.addShowing("Film1", "Screen #1", "10:00")
         const result = cinema.addShowing("Film2", "Screen #1", "08:30")
